@@ -1,0 +1,143 @@
+The Statistical Eye: Patterns in visual inferences
+========================================================
+Omesh Johar
+========================================================
+STAT 585X Project Report, April 9th
+========================================================
+
+This project is an attempt to explore ways in which visual inferences are drawn. Eye-tracking data were obtained using the SMI software. Data are available in a complex format. Available data contain information about the x-y coordinates of their gaze (both eyes) along with time-stamps. In order to conduct statistical analysis, data need to be "cleaned". As such, this project is still in progress.Data cleaning took much longer than anticipated.
+
+The following R code was used to clean-up the data. Three different functions called fname, reed, and cleanup were written. 
+
+```{r}
+library(plyr)
+library(ggplot2)
+library(plumbr)
+library (ggvis)
+```
+
+The function fname helps to obtain names of data files stored in a folder.
+```{r}
+##Function to generate file names
+fname <- function ( file,n=5 ) {
+  #file=file.choose()
+  
+  ## Split the file name to separate parts that need to be changed
+  list <- strsplit( file, "01"  )
+  
+  ##Create parts that can be merged to create names of the remaining files in the data folder
+  f <- c (rep (list[[1]][1], times = n-1))
+  a <- c(rep("0", times=n-1))
+  b <- c(rep("_00", times=n-1))
+  d <- c ( rep ( list[[1]][3] , times = n-1 ) )
+  i <-  seq(from=2, to = n)
+  
+  nam <- as.character ( matrix ( c ( 0 , 0 , 0 , 0 ) , byrow=F , nrow=4))
+  nam <- paste ( f , a , i , b, i, d, sep="")
+  nam <- c(file, nam)
+return (nam)
+}
+```
+
+The function reed helps to read the datafiles detected by fname. After reading, the files are combined in the form of a data.frame.
+```{r}
+
+## function to read one file at a time
+#Get the actual data
+reed <- function ( datafile )
+{
+#Find the number of files in the data
+l <- length (datafile)
+
+#Create the first data frame so as to rbind other files with it
+file <- datafile [1]
+df<- read.csv(file, skip=19,sep = "\t", header=F)
+
+#choose the part before "UserEvent" appears (remove from that point until the end)
+#grep helps to find where UserEvent occurs
+if ( isTRUE ( grep("UserEvent", df[,1]) >0) ) df <-  df [-seq( grep("UserEvent", df[,1]), length(df[,1]) ),] 
+df <- cbind (1, df)
+colnames(df)[1] <- "id"
+df$V5 <- as.numeric ( as.character ( df$V5) )
+
+for ( i in 2:l) {
+file <- datafile [i]
+df2<- read.csv(file, skip=19,sep = "\t", header=F)
+
+#choose the part before "UserEvent" appears (remove from that point until the end)
+#grep helps to find where UserEvent occurs
+if ( isTRUE ( grep("UserEvent", df2[,1]) >0) ) df2 <-  df2 [-seq( grep("UserEvent", df2[,1]), length(df2[,1]) ),] 
+df2 <- cbind ( i , df2)
+colnames(df2)[1] <- "id"
+df2$V5 <- as.numeric ( as.character ( df2$V5) )
+df <- rbind ( df , df2)
+}
+return (df)
+}
+```
+
+The function cleanup calls both fname and reed. Cleanup() returns a list of two objects. The first object contains eye fixation data. The second object contains saccade data.
+```{r}
+
+cleanup <- function () {
+#Get file location
+file<-file.choose()
+
+###Extract identifying information
+df1<- read.csv(file, header=F)
+
+# Get column names for fixation data (from line 11)
+# result of split needs to be unlisted
+headf <- unlist ( strsplit ( as.character ( df1[10,]), split = "\t") )
+headf <- c ( "id", "Event", "eye", headf[-1])
+
+# Get column names for saccade data (from line 14)
+heads <- unlist ( strsplit ( as.character ( df1[12,]), split = "\t") )
+heads <- c ( "id", "Event", "eye", heads[-1])
+
+###Simultaneously reading multiple files
+nam <- fname ( file )
+df2 <- reed ( nam [-2])                                     
+
+#Separate the first column to identify left/right eyes
+#The second column of df2 contains the event
+list <- strsplit( as.character ( df2[,2] ), " "  )
+
+#Transform the list into a data frame and set appropriate column names:
+v <- ldply(list)
+colnames(v) <- c("event", "eye")
+
+#combine new first 2 columns with the rest of the data.frame
+df2 <- cbind ( df2[,1], v , df2 [,3:dim(df2)[2]])
+
+dfix <- subset ( df2 , event == "Fixation")
+names (dfix) <- headf
+
+dsac <- subset ( df2 , event == "Saccade")
+names (dsac) <- heads
+
+r <- list (dfix, dsac)
+names(r) <- c( "fix" , "sac")
+names (r$sac)[9] <- "sx"
+names (r$sac)[10] <- "sy"
+return ( r)
+}
+```
+
+Next, cleanup is called to generate a data frame with data from all participants. Saccade data have been plotted with a separate graph for each participant.
+
+```{r}
+dat <- cleanup()
+
+g <- ggplot(dat$sac, aes(x = sx, y = sy, color=eye)) +
+  geom_point()+
+  geom_line()+
+  facet_wrap( ~id) + 
+  xlab("Starting X coordinate") +
+  ylab("Starting Y coordinate") +
+  ggtitle("Saccades by L/R eye (Labels 1-4 denote participant ids)")
+# Saccade plots for each participant, by eye
+g
+```
+
+As said before, this is a work in progress. More advanced functionalities and analyses will be included very soon.
