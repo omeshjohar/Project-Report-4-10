@@ -1,9 +1,9 @@
 The Statistical Eye: Patterns in visual inferences
-========================================================
+--------------------------------------------------
 Omesh Johar
-========================================================
+--------------------------------------------------
 STAT 585X Project Report, Spring 2014
-========================================================
+--------------------------------------------------
 
 Visual statistical inference is a way to determine significance of patterns found while exploring data (Majumder, Hofmann, & Cook, 2013a). Often, our inferences can be incorrect because of the way in which data are visualized. When in doubt about the prevalence of data misrepresentation, a simple google search for "misleading graphs" could be informative. The following two plots show how the choice of axis limits can mislead the audience. Data used to generate these two plots were made up for illustration purposes.
 ```{r}
@@ -302,37 +302,11 @@ p + geom_boxplot() + coord_flip() + ylab("Duration in micro seconds") + xlab ("G
 Thus, we observe that the average duration of a fixation is close to a quarter of a second (for almost every graph).
 
 ```{r}
-### Totat time spent fixating on each graph
-
-
-img <- readJPEG ( "C://Users//omesh//Dropbox//Omesh-CC//eye-tracker//stimuli//images//1.jpg")
-
-#library(caTools)
-#img <- read.gif ( "C://Users//omesh//Dropbox//Omesh-CC//eye-tracker//stimuli//images//1.gif")
-
-
 #### Trying to check overlapping
-### Read the data file
-#a <- read.delim ( "C://Users//omesh//Dropbox//Omesh-CC//eye-tracker//data//zstat1//P03.txt", skip=9, header= TRUE, sep = '\t')
-
 ### Use the image of the graph as the first layer
 ### Overlay points on the image
 ### xlim and dimentions in annotation were determined by a hit-and-trial method
-a <- subset ( df1 , graph ==1 , select = c(Location.X , Location.Y , Number) )
 
-### SMI measures y coordinates from top to bottom of the screen
-a$Location.Y <- - a$Location.Y
-r <- range (a$Location.Y)
-i <- rasterGrob ( img , interpolate = TRUE)
-g <- ggplot ( a , aes ( x = Location.X, y = Location.Y ) ) +
-  xlim ( 0, 1300)  +
-   annotation_custom(i, 
-                    450, 1200, r[1] , r[2] )+
- geom_point( colour = "red") + 
-  ggtitle ("Fixations superimposed on the Graphs")
-
-### Plot
-g
 
 #### Generating Overlay plots
 for ( c in 1: 17)
@@ -352,14 +326,6 @@ for ( c in 1: 17)
     ggtitle (paste ( "Fixations on Graph #", c, sep="" ) )
   print (g)
 }
-####Movement of fixation , interpolate = TRUE
-
-#for (j in 1:max(a$Number)) 
- # {
-  #plot(x=a$Location.X[j], y=a$Location.Y[j], xlim = c(1,1300), ylim = r)
-  #Sys.sleep(.2)
-  #}
-
 
 ```
 
