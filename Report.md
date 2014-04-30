@@ -424,6 +424,10 @@ for (c in 1:17) {
 
 ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-81.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-82.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-83.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-84.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-85.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-86.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-87.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-88.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-89.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-810.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-811.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-812.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-813.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-814.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-815.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-816.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-817.png) 
 
+```r
+
+```
+
 
 Thus, fixation data can be superimposed on the corresponding graph. The overlay plots are consistent with the protocol ( focus on the origin, move along the axes, then look somewhere in the middle). However, a comment about the overlay plots is in order. When a plot is re-sized, the background image does not get re-sized accordingly. Therefore, graphs look a little weird in the "knitted" html. The documentation of rasterImage is consistent with this observation.
 

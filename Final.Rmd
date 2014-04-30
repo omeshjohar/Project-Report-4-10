@@ -100,6 +100,7 @@ fname <- function ( file,n=5 ) {
   ## Split the file name to separate parts that need to be changed
   list <- strsplit( file, "01"  )
   
+  if ( n==0 ) return (file)
   ##Create parts that can be merged to create names of the remaining files in the data folder
   f <- c (rep (list[[1]][1], times = n-1))
   a <- c(rep("0", times=n-1))
@@ -178,7 +179,7 @@ heads <- unlist ( strsplit ( as.character ( df1[12,]), split = "\t") )
 heads <- c ( "id", "Event", "eye", heads[-1])
 
 ###Simultaneously reading multiple files
-nam <- fname ( file )
+nam <- fname ( file, n = 1 )
 df2 <- reed ( nam [-2])                                     
 
 #Separate the first column to identify left/right eyes
@@ -231,7 +232,7 @@ Next, separate files for fixations and  saccades were created using SMI (eye-tra
 ### New stuff
 ### New Stuff
 
-file <- "C://Users//omesh//Dropbox//Omesh-CC//eye-tracker//data//zstat1//Z585.txt"
+file <- "C://Users//omesh//Dropbox//Omesh-CC//eye-tracker//data//zstat1//z585_P01_001 FIX.txt"
 
 ###The data file contains fixation data as well as names of graphs viewed by the participant
 ### First I extracted the header
@@ -327,6 +328,33 @@ for ( c in 1: 17)
   print (g)
 }
 
+#### After April 29th
+#### After April 29th
+#### After April 29th
+
+### Print fixation data (show temporal order, mark start/end points)
+### To print the last fixation, extract coordinates for each graph
+df2 <- subset ( df1 , Event.Type == "Fixation L")
+  l <- ddply ( df2 , .(graph) , summarise, n = length( Number), x1 = Location.X[length(Number)], y1 = Location.Y[length(Number)])
+
+### Plot coordinates of fixation points
+## y coordinates need to be inverted
+  g <- ggplot (data =df2 , aes ( x = Location.X, y = -Location.Y ) ) +
+  #mark points yellow
+   geom_point(colour = 'yellow')+
+  # connect points in temporal order
+   geom_path()+ 
+  # Colour the first fixation point green
+   geom_point ( data = df1[df1$Number ==1,], aes ( x = Location.X , y = -Location.Y), size = 3 , colour = 'green' )+
+  # Colour the last fixation point red
+   geom_point ( data = l , aes ( x = x1 , y = -y1 ) , colour = 'red') + 
+  # Separate plots for each graph
+  facet_wrap(~graph)+
+  # Main title
+  ggtitle ( "Fixations by Graph Number")
+  print (g)
+ 
+ 
 
 ```
 

@@ -1,11 +1,11 @@
 The Statistical Eye: Patterns in visual inferences
-========================================================
-Omesh Johar
-========================================================
-STAT 585X Project Report, Spring 2014
-========================================================
-
-Visual statistical inference is a way to determine significance of patterns found while exploring data (Majumder, Hofmann, & Cook, 2013a). Often, our inferences can be incorrect because of the way in which data are visualized. When in doubt about the prevalence of data misrepresentation, a simple google search for "misleading graphs" could be informative. The following two plots show how the choice of axis limits can mislead the audience. Data used to generate these two plots were made up for illustration purposes.
+--------------------------------------------------
+  Omesh Johar
+--------------------------------------------------
+  STAT 585X Project Report, Spring 2014
+--------------------------------------------------
+  
+  Visual statistical inference is a way to determine significance of patterns found while exploring data (Majumder, Hofmann, & Cook, 2013a). Often, our inferences can be incorrect because of the way in which data are visualized. When in doubt about the prevalence of data misrepresentation, a simple google search for "misleading graphs" could be informative. The following two plots show how the choice of axis limits can mislead the audience. Data used to generate these two plots were made up for illustration purposes.
 
 ```r
 library(plyr)
@@ -88,8 +88,8 @@ In general, it remains difficult to assess the validity of visual inferences tha
 
 
 **Current Research**
-
-This project is an attempt to explore ways in which visual inferences are drawn. Let us do a quick exercise to illustrate the kinds of questions that are relevant to this project. Please take a moment to examine the next plot. When you look at the plot, try to determine the slope of the line.
+  
+  This project is an attempt to explore ways in which visual inferences are drawn. Let us do a quick exercise to illustrate the kinds of questions that are relevant to this project. Please take a moment to examine the next plot. When you look at the plot, try to determine the slope of the line.
 
 
 ```r
@@ -122,361 +122,152 @@ _Code and Results_
 
 Eye-tracking data were obtained using the SMI software. Data are available in a complex format. The software SMI was used to export data into ".txt" files. Available data contain information about the x-y coordinates of fixations and saccades (both eyes) along with time-stamps. Fixations denote sustained gaze for extended periods of time. Saccades denote rapid movements of the eyes between two points. In order to conduct statistical analysis, data were slightly "cleaned".
 
-First, I tried to create a repository of code that could be used for cleaning and processing raw data. Not all of this code was used for analysis. Although the functions cleanup, reed, and fname can be helpful, they were not used during the final analysis.
 
 
 ```r
-### The following R code was used to clean-up the data. Three different
-### functions called fname, ###reed, and cleanup were written.
 
-### The function fname helps to obtain names of data files stored in a folder.
+### This function helps to separate fixation and saccade data
 
-## Function to generate file names
-fname <- function(file, n = 5) {
-    # file=file.choose()
-    
-    ## Split the file name to separate parts that need to be changed
-    list <- strsplit(file, "01")
-    
-    ## Create parts that can be merged to create names of the remaining files in
-    ## the data folder
-    f <- c(rep(list[[1]][1], times = n - 1))
-    a <- c(rep("0", times = n - 1))
-    b <- c(rep("_00", times = n - 1))
-    d <- c(rep(list[[1]][3], times = n - 1))
-    i <- seq(from = 2, to = n)
-    
-    nam <- as.character(matrix(c(0, 0, 0, 0), byrow = F, nrow = 4))
-    nam <- paste(f, a, i, b, i, d, sep = "")
-    nam <- c(file, nam)
-    return(nam)
-}
-
-##### 
-
-# The function reed helps to read the datafiles detected by fname. After
-# reading, the files are combined in the form of a data.frame.
-
-
-## function to read one file at a time Get the actual data
-reed <- function(datafile) {
-    # Find the number of files in the data
-    l <- length(datafile)
-    
-    # Create the first data frame so as to rbind other files with it
-    file <- datafile[1]
-    df <- read.csv(file, skip = 19, sep = "\t", header = F)
-    
-    # choose the part before 'UserEvent' appears (remove from that point until
-    # the end) grep helps to find where UserEvent occurs
-    if (isTRUE(grep("UserEvent", df[, 1]) > 0)) 
-        df <- df[-seq(grep("UserEvent", df[, 1]), length(df[, 1])), ]
-    df <- cbind(1, df)
-    colnames(df)[1] <- "id"
-    df$V5 <- as.numeric(as.character(df$V5))
-    
-    for (i in 2:l) {
-        file <- datafile[i]
-        df2 <- read.csv(file, skip = 19, sep = "\t", header = F)
-        
-        # choose the part before 'UserEvent' appears (remove from that point until
-        # the end) grep helps to find where UserEvent occurs
-        if (isTRUE(grep("UserEvent", df2[, 1]) > 0)) 
-            df2 <- df2[-seq(grep("UserEvent", df2[, 1]), length(df2[, 1])), 
-                ]
-        df2 <- cbind(i, df2)
-        colnames(df2)[1] <- "id"
-        df2$V5 <- as.numeric(as.character(df2$V5))
-        df <- rbind(df, df2)
-    }
-    return(df)
-}
-
-##### 
-
-
-# The function cleanup calls both fname and reed. Cleanup() returns a list
-# of two objects. The first object contains eye fixation data. The second
-# object contains saccade data.
-```
-
-```r
-
-cleanup <- function(file) {
-    # Get file location file<-file.choose()
+cleanup <- function() {
+    file <- file.choose()
+    # file <-
+    # 'C://Users//omesh//Dropbox//Omesh-CC//eye-tracker//data//zstat1//z585_P01_001
+    # FIX.txt'
     
     ### Extract identifying information
-    df1 <- read.csv(file, header = F)
+    df <- read.csv(file, header = F)
     
-    # Get column names for fixation data (from line 11) result of split needs to
+    # Get column names for fixation data (from line 9) result of split needs to
     # be unlisted
-    headf <- unlist(strsplit(as.character(df1[10, ]), split = "\t"))
-    headf <- c("id", "Event", "eye", headf[-1])
+    headf <- unlist(strsplit(as.character(df[9, ]), split = "\t"))
+    headf[7] <- "Location.X"
+    headf[8] <- "Location.Y"
+    headf <- c("id", "graph", "event", "eye", headf[-1])
     
-    # Get column names for saccade data (from line 14)
-    heads <- unlist(strsplit(as.character(df1[12, ]), split = "\t"))
-    heads <- c("id", "Event", "eye", heads[-1])
+    # Get column names for saccade data (from line 11)
+    heads <- unlist(strsplit(as.character(df[11, ]), split = "\t"))
+    heads[7] <- "Slocx"
+    heads[8] <- "slocy"
+    heads[9] <- "elocx"
+    heads[10] <- "elocy"
+    heads <- c("id", "graph", "event", "eye", heads[-1])
     
-    ### Simultaneously reading multiple files
-    nam <- fname(file)
-    df2 <- reed(nam[-2])
+    ### Next, I extracted all data
+    df1 <- read.delim(file, sep = "\t", header = FALSE, skip = 17)
+    head(df1)
+    class(df1)
     
-    # Separate the first column to identify left/right eyes The second column of
-    # df2 contains the event
-    list <- strsplit(as.character(df2[, 2]), " ")
+    
+    # generate id for participant, graph for image seen, add them to the data
+    id <- as.vector(rep(1, times = dim(df1)[1]))
+    graph <- rep(1, times = dim(df1)[1])
+    
+    df1 <- cbind(id, graph, df1)
+    
+    ### Now we can remove rows containing names of graphs Find out which rows
+    ### contains information about graphs Find the length of each region
+    pos <- grep("UserEvent", df1[, 3])
+    
+    ### Note that the number of integers between x and y (including x) is y + 1 -
+    ### x Shift the positions vector one space to the left and add one element add
+    ### the end
+    pos_shift <- pos[-1]
+    pos_shift[length(pos_shift) + 1] <- dim(df1)[1] + 1
+    
+    ### Length of each region = number of rows = difference between pos and
+    ### pos_shift
+    reps <- pos_shift - pos
+    
+    ### Generate ids (1 - 17)
+    ids <- seq(from = 1, to = length(pos), by = 1)
+    ### Repeat the ids based on the length of each region
+    gr <- c(rep(ids, times = reps))
+    
+    ### update ids in the data
+    df1$graph <- gr
+    
+    ### Remove rows containing image data
+    df1 <- df1[-pos, ]
+    
+    # Separate the third column to separate event from left/right eyes
+    list <- strsplit(as.character(df1[, 3]), " ")
     
     # Transform the list into a data frame and set appropriate column names:
     v <- ldply(list)
     colnames(v) <- c("event", "eye")
     
-    # combine new first 2 columns with the rest of the data.frame
-    df2 <- cbind(df2[, 1], v, df2[, 3:dim(df2)[2]])
     
-    dfix <- subset(df2, event == "Fixation")
+    df1 <- cbind(df1[, 1:2], v, df1[, 4:dim(df1)[2]])
+    # combine new first 2 columns with the rest of the data.frame df2 <- cbind (
+    # id, v , df1 [,2:dim(df2)[2]])
+    
+    dfix <- subset(df1[, 1:16], event == "Fixation")
     names(dfix) <- headf
     
-    dsac <- subset(df2, event == "Saccade")
+    dsac <- subset(df1, event == "Saccade")
     names(dsac) <- heads
     
-    r <- list(dfix, dsac)
-    names(r) <- c("fix", "sac")
-    names(r$sac)[9] <- "sx"
-    names(r$sac)[10] <- "sy"
-    return(r)
+    p <- list(dfix, dsac)
+    names(p) <- c("fix", "sac")
+    return(p)
 }
-
-##### 
-
-# Next, cleanup is called to generate a data frame with data from all
-# participants. Saccade data have been plotted with a separate graph for
-# each participant.
-
-dat <- cleanup()
 ```
 
-```
-## Error: argument "file" is missing, with no default
-```
+
+
 
 ```r
 
-g <- ggplot(dat$sac, aes(x = sx, y = sy, color = eye)) + geom_point() + geom_line() + 
-    facet_wrap(~id) + xlab("Starting X coordinate") + ylab("Starting Y coordinate") + 
-    ggtitle("Saccades by L/R eye (Labels 1-4 denote participant ids)")
-```
-
-```
-## Error: object 'dat' not found
-```
-
-```r
-# Saccade plots for each participant, by eye g
-```
-
-
-Next, separate files for fixations and  saccades were created using SMI (eye-tracking software). 
-
-
-```r
-### New stuff New stuff New Stuff
-
-file <- "C://Users//omesh//Dropbox//Omesh-CC//eye-tracker//data//zstat1//Z585.txt"
-
-### The data file contains fixation data as well as names of graphs viewed by
-### the participant First I extracted the header
-df <- read.delim(file, sep = "\t", header = TRUE, skip = 10, nrow = 1)
-
-### Next, I extracted all data
-df1 <- read.delim(file, sep = "\t", header = FALSE, skip = 15)
-head(df1)
-```
-
-```
-##           V1 V2 V3        V4                                        V5
-## 1  UserEvent  1  1 1.274e+10 # Message: Ex 1 Estimate slope_Page_1.jpg
-## 2 Fixation L  1  1 1.274e+10                               12742341851
-## 3 Fixation R  1  1 1.274e+10                               12742341851
-## 4 Fixation L  1  2 1.274e+10                               12742525835
-## 5 Fixation R  1  2 1.274e+10                               12742525835
-## 6 Fixation L  1  3 1.274e+10                               12742715961
-##       V6    V7    V8 V9 V10         V11 V12 V13   V14   V15
-## 1     NA    NA    NA NA  NA                  NA    NA    NA
-## 2  92551 661.0 666.8  7  51 White Space   -  -1 11.74 11.74
-## 3  92551 661.0 666.8  7  51 White Space   -  -1 11.55 11.55
-## 4 155993 753.5 630.0 37  50 White Space   -  -1 11.35 11.35
-## 5 155993 753.5 630.0 37  50 White Space   -  -1 11.04 11.04
-## 6 144113 761.7 588.2 22  55 White Space   -  -1 10.99 10.99
-```
-
-```r
-class(df1)
-```
-
-```
-## [1] "data.frame"
-```
-
-```r
-### Incorporation of header with data It wasn't possible to extract data and
-### header in one command. The file contained headers for fixations as well as
-### graphs
-names(df1) <- names(df)
-
-### Now we can remove rows containing names of graphs However, we need to
-### retain identifiers for fixation data. Each subset of data denotes a
-### specific graph First, I added a new column called graph
-graph <- rep(1, times = dim(df1)[1])
-df1 <- cbind(df1, graph)
-
-### The idea is to find regions where data from a new graph start. Alls rows
-### between two consecutive occurences of graph-data get the relevant graph's
-### id
-
-### Find out which rows contains information about graphs Find the length of
-### each region
-pos <- grep("UserEvent", df1[, 1])
-
-### Note that the number of integers between x and y (including x) is y + 1 -
-### x Shift the positions vector one space to the left and add one element add
-### the end
-pos_shift <- pos[-1]
-pos_shift[length(pos_shift) + 1] <- dim(df1)[1] + 1
-
-### Length of each region = number of rows = difference between pos and
-### pos_shift
-reps <- pos_shift - pos
-
-### Generate ids (1 - 17)
-ids <- seq(from = 1, to = length(pos), by = 1)
-### Repeat the ids based on the length of each region
-gr <- c(rep(ids, times = reps))
-
-### update ids in the data
-df1$graph <- gr
-
-### Remove rows containing image data
-df1 <- df1[-pos, ]
-```
-
-
-After having "cleaned" fixation data, I was able to visually explore it.
-
-
-```r
-#### Comparison of fixations for different graphs
-
-### Number of fixations
-counts <- (ddply(df1, .(graph), summarise, length(graph))[, 2])
-qplot(counts, geom = "histogram", xlab = "Number of fixations", main = "Histogram of number of fixations")  ### Totat time spent fixating on each graph
-```
-
-```
-## stat_bin: binwidth defaulted to range/30. Use 'binwidth = x' to adjust this.
-```
-
-![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-71.png) 
-
-```r
-
-### Duration of fixations
-dur <- ddply(df1, .(graph), summarise, sum(Duration) * 10^(-6))[, 2]
-# dev.off()
-hist(dur, xlab = "Duration (seconds)", main = "Histogram of Total Duration of fixations")
-```
-
-![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-72.png) 
-
-```r
-
-### Boxplot of fixation durations per graph
-p <- ggplot(df1, aes(factor(graph), Duration))
-
-p + geom_boxplot() + coord_flip() + ylab("Duration in micro seconds") + xlab("Graph id") + 
-    ggtitle("Boxplots of fixation durations vs. Graphs")
-```
-
-![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-73.png) 
-
-Thus, we observe that the average duration of a fixation is close to a quarter of a second (for almost every graph).
-
-
-```r
-### Totat time spent fixating on each graph
-
-
-img <- readJPEG("C://Users//omesh//Dropbox//Omesh-CC//eye-tracker//stimuli//images//1.jpg")
-
-# library(caTools) img <- read.gif (
-# 'C://Users//omesh//Dropbox//Omesh-CC//eye-tracker//stimuli//images//1.gif')
-
-
-#### Trying to check overlapping Read the data file a <- read.delim (
-#### 'C://Users//omesh//Dropbox//Omesh-CC//eye-tracker//data//zstat1//P03.txt',
-#### skip=9, header= TRUE, sep = '\t')
-
-### Use the image of the graph as the first layer Overlay points on the image
-### xlim and dimentions in annotation were determined by a hit-and-trial
-### method
-a <- subset(df1, graph == 1, select = c(Location.X, Location.Y, Number))
-
-### SMI measures y coordinates from top to bottom of the screen
-a$Location.Y <- -a$Location.Y
-r <- range(a$Location.Y)
-i <- rasterGrob(img, interpolate = TRUE)
-g <- ggplot(a, aes(x = Location.X, y = Location.Y)) + xlim(0, 1300) + annotation_custom(i, 
-    450, 1200, r[1], r[2]) + geom_point(colour = "red") + ggtitle("Fixations superimposed on the Graphs")
-
-### Plot
-g
-```
-
-![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-81.png) 
-
-```r
-
-#### Generating Overlay plots
-for (c in 1:17) {
-    loc <- paste("C://Users//omesh//Dropbox//Omesh-CC//eye-tracker//stimuli//images//", 
-        c, ".jpg", sep = "")
-    img <- readJPEG(loc)
+### This function helps to plot the fixation data
+pfix <- function(df2) {
+    ### Print fixation data (show temporal order, mark start/end points) To print
+    ### the last fixation, extract coordinates for each graph df2 <- subset ( df1
+    ### , Event.Type == 'Fixation L')
+    l <- ddply(df2, .(graph), summarise, n = length(Number), x1 = Location.X[length(Number)], 
+        y1 = Location.Y[length(Number)])
     
-    a <- subset(df1, graph == c, select = c(Location.X, Location.Y, Number))
-    a$Location.Y <- -a$Location.Y
-    r <- range(a$Location.Y)
-    i <- rasterGrob(img, interpolate = FALSE)
-    g <- ggplot(a, aes(x = Location.X, y = Location.Y)) + xlim(0, 1300) + ylim(-1110, 
-        0) + annotation_custom(i, xmin = 450, xmax = 1200, ymin = -1109, ymax = 0) + 
-        geom_point(colour = "red") + ggtitle(paste("Fixations on Graph #", c, 
-        sep = ""))
+    ### Plot coordinates of fixation points y coordinates need to be inverted
+    g <- ggplot(data = df2, aes(x = Location.X, y = -Location.Y)) + # mark points yellow
+    geom_point(colour = "yellow") + # connect points in temporal order
+    geom_path() + # Colour the first fixation point green
+    geom_point(data = df2[df2$Number == 1, ], aes(x = Location.X, y = -Location.Y), 
+        size = 3, colour = "green") + # Colour the last fixation point red
+    geom_point(data = l, aes(x = x1, y = -y1), colour = "red") + # Separate plots for each graph
+    facet_wrap(~graph) + # Main title
+    ggtitle("Fixations by Graph Number")
     print(g)
 }
+
+
+t <- cleanup()
+names(t)
 ```
 
-![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-82.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-83.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-84.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-85.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-86.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-87.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-88.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-89.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-810.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-811.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-812.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-813.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-814.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-815.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-816.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-817.png) ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-818.png) 
+```
+## [1] "fix" "sac"
+```
 
 ```r
-#### Movement of fixation , interpolate = TRUE
-
-# for (j in 1:max(a$Number)) { plot(x=a$Location.X[j], y=a$Location.Y[j],
-# xlim = c(1,1300), ylim = r) Sys.sleep(.2) }
-
+pfix(t$fix)
 ```
 
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5.png) 
 
-Thus, fixation data can be superimposed on the corresponding graph. The overlay plots are consistent with the protocol ( focus on the origin, move along the axes, then look somewhere in the middle). 
-
-However, a comment about the overlay plots is in order. When a plot is re-sized, the background image does not get re-sized accordingly. Therefore, graphs look a little weird in the "knitted" html. The documentation of rasterImage is consistent with this observation.
 
 **Discussion**
+
 This project is a preliminary exercise in studying visual inferences. More involved analyses of eye-tracking data could potentially help to answer interesting questions about the process which which people make inferences from visual representations of data. 
 
 _Future Directions_
+
 Visual statistical inferences have been examined only by a few past studies. For instance, Majumder and colleagues (2013b) examined the performance of line-up based visual inferences. They found that line-up protocols outperform conventional tests when data are contaminated. An obvious questions then is, how robust are visual inferences? It would be interesting to subject visual inferences to cross-validation: are visual inferences affected by certain data points? Although one way to address this question is to conduct an experiment in which participants draw inferences from plots of subsets of a data set, this question can also be addressed in an eye-tracking study. For instance, if participants in a study did (or did not) fixate on a specific point on a graph then that point may (or may not) influence the resulting inferences.
 
 **Conclusion**
+
 It is fascinating that we can track peoples' eye-movements! Research has just begun to harness the potential of eye-tracking for studying visual statistical inferences. Eye-tracking definitely offers a lot of promise. However, lot of work still needs to be done.
 
 _References_
+
 Macdonald, J. S. P., & Lavie, N. (2008). Load induced blindness. _Journal of Experimental Psychology: Human Perception and Performance, 34(5),_ 1078-1091. 
 
 Majumder, M., Hofmann, H., & Cook, D. (2013a). _Human Factors Influencing Visual Statistical Inference._ Unpublished manuscript, Iowa State University, Ames, IA.
